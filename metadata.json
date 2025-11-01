@@ -1,0 +1,5 @@
+{
+  "name": "Nginx Config AI Assistant",
+  "description": "An AI-powered web application to help you generate Nginx load balancer configurations. Define your upstreams and VIPs, and let Gemini generate a secure and optimized configuration file for you.",
+  "requestFramePermissions": []
+}
