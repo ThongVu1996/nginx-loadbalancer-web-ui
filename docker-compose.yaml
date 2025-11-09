@@ -2,19 +2,19 @@ version: '3.8'
 
 services:
   web-ui:
-    # Dùng image chúng ta đã build ở Bước 1
+    # Use the image we built in Step 1
     image: nginx-web-ui:latest
     container_name: nginx-web-ui-110
     restart: unless-stopped
     networks:
       vlan110_net:
-        # Gán IP tĩnh mà Tony muốn
+        # Assign the static IP that Tony wants
         ipv4_address: 192.168.110.225
 
-# Khai báo mạng
+# Declare the network
 networks:
   vlan110_net:
-    # Báo cho compose biết mạng này đã được tạo ở ngoài
+    # Tell compose that this network was created externally
     external: true
-    # Tên của mạng đã tạo ở Bước 3
+    # The name of the network created in Step 3
     name: VLAN110
