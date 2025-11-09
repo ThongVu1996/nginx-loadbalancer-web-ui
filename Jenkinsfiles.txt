@@ -50,6 +50,8 @@ pipeline {
                 sh "docker logout register.tonytechlab.com"
             }
         }
+
+        
     
     post {
         always {
