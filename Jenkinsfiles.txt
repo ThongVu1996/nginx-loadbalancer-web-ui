@@ -1,0 +1,107 @@
+pipeline {
+    agent any
+    
+    environment {
+        // General name for the application
+        APP_NAME = "nginx-loadbalancer-tool"
+        
+        // Name for the Service (ClusterIP)
+        APP_SERVICE_NAME = "nginx-loadbalancer-tool-svc"
+        
+        // Public domain for the Ingress
+        APP_HOST_URL = "http://nlb.tonytechlab.com" 
+
+        // Image path on the registry
+        APP_IMAGE_NAME = "register.tonytechlab.com/tonytechlab/nginx-loadbalancer-tool"
+
+        // Credentials IDs
+        K8S_CONFIG_ID = 'k8s-user-creds' 
+        REGISTRY_LOGIN_ID = 'gitlab-registry-login'
+
+        // Updated to the correct namespace
+        K8S_NAMESPACE = 'nlb-tool'
+    }
+
+    stages {
+        stage('Stage 1: Checkout Latest Code') {
+            steps {
+                echo 'Starting to check out code...'
+                cleanWs()
+                checkout scm
+                echo "SUCCESS: Code checkout complete."
+            }
+        }
+
+        stage('Stage 2: Build & Push App') { 
+            steps {
+                echo "INFO: Logging into Registry..."
+                withCredentials([usernamePassword(credentialsId: REGISTRY_LOGIN_ID, usernameVariable: 'REG_USER', passwordVariable: 'REG_PASS')]) {
+                    sh "docker login register.tonytechlab.com -u ${REG_USER} -p ${REG_PASS}"
+                }
+                
+                echo "INFO: Building App image..."
+                // FIXED (added the "." character)
+                sh "docker build -f Dockerfile.txt -t ${APP_IMAGE_NAME}:latest ." 
+                
+                echo "INFO: Pushing App image..."
+                sh "docker push ${APP_IMAGE_NAME}:latest"
+
+                echo "INFO: Logging out from Registry..."
+                sh "docker logout register.tonytechlab.com"
+            }
+        }
+
+        stage('Stage 3: Deploy to Kubernetes') {
+            steps {
+                echo 'Starting deployment to Kubernetes cluster...'
+                
+                withCredentials([file(credentialsId: K8S_CONFIG_ID, variable: 'KUBECONFIG_FILE_PATH')]) {
+                    withEnv(["KUBECONFIG=${KUBECONFIG_FILE_PATH}"]) {
+                        
+                        echo '0. Cleaning up old resources...'
+                        // Clean up App, Service, and Ingress
+                        sh "kubectl delete deployment ${APP_NAME} --namespace=${K8S_NAMESPACE} || true"
+                        sh "kubectl delete service ${APP_SERVICE_NAME} --namespace=${K8S_NAMESPACE} || true"
+                        sh "kubectl delete ingress nlb-ingress --namespace=${K8S_NAMESPACE} || true"
+
+                        echo '1. Applying Namespace and Secret...'
+                        // DO NOT DELETE Namespace, just Apply (to protect the secret)
+                        sh "kubectl apply -f k8s/namespace.yaml --namespace=${K8S_NAMESPACE} || true"
+                        // Apply the fixed secret file
+                        sh "kubectl apply -f k8s/registry-secret.yaml --namespace=${K8S_NAMESPACE}"
+
+                        echo '2. Applying Deployment, Service, and Ingress...'
+                        sh "kubectl apply -f k8s/nlb-service.yaml --namespace=${K8S_NAMESPACE}"
+                        sh "kubectl apply -f k8s/nlb-deployment.yaml --namespace=${K8S_NAMESPACE}"
+                        sh "kubectl apply -f k8s/nlb-ingress.yaml --namespace=${K8S_NAMESPACE}"
+
+                        echo '3. Waiting 5 seconds...'
+                        sh "sleep 5" 
+
+                        echo '4. Waiting for deployment to complete...'
+                        sh "kubectl rollout status deployment/${APP_NAME} --namespace=${K8S_NAMESPACE}"
+                        
+                        echo '5. Getting Service Access URLs...'
+                        script {
+                            echo "----------------------------------------------------"
+                            echo "✅ Frontend (Ingress): ${APP_HOST_URL}  (Access externally via Load Balancer/NPM)"
+                            echo "----------------------------------------------------"
+                        }
+                    }
+                }
+            }
+        }
+    } // End of stages
+    
+    post {
+        always {
+            echo 'Pipeline has finished (Regardless of success or failure).'
+        }
+        success {
+            echo '✅ SUCCESS: Pipeline completed successfully!'
+        }
+        failure {
+            echo '❌ FAILED: Pipeline failed.'
+        }
+    } // End of post
+}
