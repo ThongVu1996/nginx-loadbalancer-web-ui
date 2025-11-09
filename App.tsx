@@ -15,6 +15,9 @@ const Header: React.FC = () => (
         <CodeBracketIcon className="w-8 h-8 text-cyan-400" />
         <h1 className="text-2xl font-bold text-white tracking-wider">Nginx Config Assistant</h1>
       </div>
+      <div className="text-sm text-gray-400">
+        Powered By <a href="https://tonytechlab.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-cyan-400 hover:text-cyan-300 transition-colors">TonyTechLab</a>
+      </div>
     </div>
   </header>
 );

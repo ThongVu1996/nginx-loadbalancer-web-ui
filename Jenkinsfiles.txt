@@ -41,7 +41,7 @@ pipeline {
                 
                 echo "INFO: Building App image..."
                 // BUG FIX (added ".")
-                sh "docker build -t ${APP_IMAGE_NAME}:latest ." 
+                sh "docker build -f Dockerfile.txt -t ${APP_IMAGE_NAME}:latest ."
                 
                 echo "INFO: Pushing App image..."
                 sh "docker push ${APP_IMAGE_NAME}:latest"
