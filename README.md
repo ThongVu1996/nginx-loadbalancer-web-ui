@@ -1,4 +1,3 @@
-
 # Nginx Config AI Assistant
 
 An AI-powered web application to help you generate Nginx load balancer configurations. Define your upstreams and VIPs, and let the AI generate a secure and optimized configuration file for you.
@@ -64,7 +63,7 @@ FROM nginx:1.25-alpine
 COPY --from=build /app/dist /usr/share/nginx/html
 
 # Copy a custom Nginx configuration to handle SPA routing
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf.txt /etc/nginx/conf.d/default.conf
 
 # Expose port 80
 EXPOSE 80
@@ -73,11 +72,11 @@ EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 ```
 
-### 2. Nginx Configuration (`nginx.conf`)
+### 2. Nginx Configuration (`nginx.conf.txt`)
 
 This configuration ensures that requests to any path are served by `index.html`, which is standard for single-page applications (SPAs).
 
-Create a file named `nginx.conf` in the root of your project with the following content:
+Create a file named `nginx.conf.txt` in the root of your project with the following content:
 
 ```nginx
 server {

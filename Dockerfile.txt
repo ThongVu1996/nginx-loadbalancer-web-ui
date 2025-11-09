@@ -1,36 +1,36 @@
-# STAGE 1: Build ứng dụng TypeScript/React
-# Dùng image Node.js (bản 18, alpine cho nhẹ) làm "môi trường build"
+# STAGE 1: Build the TypeScript/React application
+# Use the Node.js image (version 18, alpine for lightness) as the "build environment"
 FROM node:18-alpine AS builder
 
-# Đặt thư mục làm việc bên trong container
+# Set the working directory inside the container
 WORKDIR /app
 
-# Chép file package.json và package-lock.json trước
+# Copy package.json and package-lock.json files first
 COPY package*.json ./
 
-# Cài đặt các thư viện (dependencies)
+# Install dependencies
 RUN npm install
 
-# Chép toàn bộ source code còn lại vào
+# Copy the rest of the source code
 COPY . .
 
-# Chạy lệnh build (lệnh này sẽ tạo ra thư mục /app/dist)
+# Run the build command (this will create the /app/dist directory)
 RUN npm run build
 
-# STAGE 2: Serve ứng dụng đã build bằng Nginx
-# Dùng image Nginx (bản alpine cho nhẹ) làm "máy chủ web"
+# STAGE 2: Serve the built application with Nginx
+# Use the Nginx image (alpine for lightness) as the "web server"
 FROM nginx:alpine
 
-# Chép C_H_Ỉ thư mục build (kết quả của Stage 1)
-# vào thư mục web root mặc định của Nginx
+# Copy ONLY the build directory (the result of Stage 1)
+# into the default web root directory of Nginx
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Chép file cấu hình Nginx (đã có sẵn trong repo của bạn)
-# File này rất quan trọng để xử lý routing của React (tránh lỗi 404 khi F5)
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy the Nginx configuration file (already in your repo)
+# This file is crucial for handling React routing (to avoid 404 errors on refresh)
+COPY nginx.conf.txt /etc/nginx/conf.d/default.conf
 
-# Mở cổng 80
+# Expose port 80
 EXPOSE 80
 
-# Khởi chạy Nginx
+# Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
