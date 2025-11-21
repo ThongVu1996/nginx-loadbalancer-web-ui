@@ -58,37 +58,36 @@ pipeline {
                     sh "rm -rf build_area && mkdir build_area"
                     
                     dir('build_area') {
-                        // 2. Tạo khung Chart chuẩn (Sinh ra values.yaml mặc định)
+                        // 2. Tạo khung Chart chuẩn
                         sh "helm create ${chartName}"
 
-                        // 3. Dọn dẹp folder templates (Xóa deployment/service mẫu)
+                        // 3. Dọn dẹp folder templates
                         sh "rm -rf ${chartName}/templates/*"
                         
                         // ====================================================
-                        // QUAN TRỌNG: XỬ LÝ VALUES.YAML
+                        // FIX: XỬ LÝ CÁC FILE CẤU HÌNH (Chart.yaml & values.yaml)
                         // ====================================================
-                        echo "INFO: Overwriting default values.yaml with User config..."
+                        echo "INFO: Overwriting config files..."
                         
-                        // Lệnh này copy file values.yaml của Tony đè lên file values.yaml vừa được tạo
-                        // -f (force): Bắt buộc ghi đè không cần hỏi
-                        // Vị trí đích: ${chartName}/values.yaml (Nằm ngay root chart)
+                        // Copy values.yaml (Ghi đè file gốc)
                         sh "cp -f ../helm/values.yaml ${chartName}/values.yaml"
                         
+                        // [NEW] Nếu Tony có file Chart.yaml custom trong git, hãy copy nó ra ROOT chart
+                        // Lệnh này sẽ copy nếu file tồn tại, nếu không thì bỏ qua (|| true)
+                        sh "cp -f ../helm/Chart.yaml ${chartName}/Chart.yaml || true"
+
                         // ====================================================
-                        // XỬ LÝ CÁC FILE TEMPLATE KHÁC (Deployment, Service...)
+                        // FIX: COPY TEMPLATES (LOẠI TRỪ Chart.yaml)
                         // ====================================================
-                        echo "INFO: Copying other YAML files to templates folder..."
+                        echo "INFO: Copying YAML templates..."
                         
-                        // Logic: Tìm tất cả file .yaml trong git
-                        // NHƯNG LOẠI TRỪ (! -name) file values.yaml vì đã copy ở trên rồi
-                        // Copy tất cả vào folder 'templates/'
+                        // Thêm: ! -name "Chart.yaml" để không copy nhầm file này vào folder templates
                         sh """
-                            find ../helm -maxdepth 1 -name "*.yaml" ! -name "values.yaml" ! -name "*.tgz" -exec cp {} ${chartName}/templates/ \\;
+                            find ../helm -maxdepth 1 -name "*.yaml" ! -name "values.yaml" ! -name "Chart.yaml" ! -name "*.tgz" -exec cp {} ${chartName}/templates/ \\;
                         """
                         
-                        // Debug: In ra nội dung file values.yaml sau khi copy để Tony kiểm tra trong log
-                        echo "--- CHECK CONTENT OF VALUES.YAML ---"
-                        sh "cat ${chartName}/values.yaml"
+                        // Debug: Liệt kê file để kiểm tra
+                        sh "ls -R ${chartName}"
 
                         // 4. ĐÓNG GÓI
                         def chartVersion = "0.1.${env.BUILD_NUMBER}"
