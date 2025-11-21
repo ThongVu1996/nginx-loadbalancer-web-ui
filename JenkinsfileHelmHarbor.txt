@@ -29,7 +29,7 @@ pipeline {
             steps {
                 echo "INFO: Logging into Registry..."
                 withCredentials([usernamePassword(credentialsId: REGISTRY_LOGIN_ID, usernameVariable: 'REG_USER', passwordVariable: 'REG_PASS')]) {
-                    sh "docker login harbor.tonytechlab.com -u ${REG_USER} -p ${REG_PASS}"
+                    sh "docker login ${HARBOR_DOMAIN_NAME} -u ${REG_USER} -p ${REG_PASS}"
                 }
                 
                 echo "INFO: Building App image..."
@@ -48,7 +48,7 @@ pipeline {
             steps {
                 echo "INFO: Logging into Registry..."
                 withCredentials([usernamePassword(credentialsId: REGISTRY_LOGIN_ID, usernameVariable: 'REG_USER', passwordVariable: 'REG_PASS')]) {
-                    sh "helm registry login harbor.tonytechlab.com -u ${REG_USER} -p ${REG_PASS}"
+                    sh "helm registry login ${HARBOR_DOMAIN_NAME} -u ${REG_USER} -p ${REG_PASS}"
                 }
                 
                 echo "INFO: Load Package..."
