@@ -64,7 +64,7 @@ const Header: React.FC = () => (
         <h1 className="text-2xl font-bold text-white tracking-wider">Nginx Config Assistant</h1>
       </div>
       <div className="text-sm text-gray-400">
-        Powered By <a href="https://tonytechlab.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-cyan-400 hover:text-cyan-300 transition-colors">TonyTechLab 2025 - 2nd Release</a>
+        Powered By <a href="https://tonytechlab.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-cyan-400 hover:text-cyan-300 transition-colors">TonyTechLab 2025 - 3nd Release</a>
       </div>
     </div>
   </header>
