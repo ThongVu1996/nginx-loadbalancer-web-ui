@@ -2,13 +2,13 @@ pipeline {
     agent any
     
     environment {
-       // Harbor Domain registry
+        // Harbor Domain registry
         HARBOR_DOMAIN_NAME = "harbor.tonytechlab.com"
-		
-	   // Image path on the registry
+        
+        // Image path on the registry
         APP_IMAGE_NAME = "harbor.tonytechlab.com/template-nlb/nginx-loadbalancer-tool"
 
-        // Credentials IDs
+        // Credentials IDs (Đảm bảo ID này đã tồn tại trong Jenkins)
         REGISTRY_LOGIN_ID = 'harbor-registry-login'
 
         // Updated namespace to be correct
@@ -33,7 +33,7 @@ pipeline {
                 }
                 
                 echo "INFO: Building App image..."
-                // BUG FIX (added ".")
+                // Lưu ý: Đảm bảo file 'Dockerfile.txt' tồn tại, nếu không hãy đổi thành 'Dockerfile'
                 sh "docker build -f Dockerfile.txt -t ${APP_IMAGE_NAME}:latest ."
                 
                 echo "INFO: Pushing App image..."
@@ -43,8 +43,8 @@ pipeline {
                 sh "docker logout ${HARBOR_DOMAIN_NAME}"
             }
         }
-		
-		stage('Stage 3: Push Helm Chart To Registry') { 
+        
+        stage('Stage 3: Push Helm Chart To Registry') { 
             steps {
                 echo "INFO: Logging into Registry..."
                 withCredentials([usernamePassword(credentialsId: REGISTRY_LOGIN_ID, usernameVariable: 'REG_USER', passwordVariable: 'REG_PASS')]) {
@@ -52,11 +52,14 @@ pipeline {
                 }
                 
                 echo "INFO: Load Package..."
-				sh "sh "https://github.com/tonytechlabvn/nginx-loadbalancer-web-ui/blob/main/helm/template-nlb-0.1.0.tgz"
-				echo "INFO: Push to Registry..."
+                // FIX 1 & 2: Dùng wget và đổi 'blob' thành 'raw' để tải file binary
+                sh "wget https://github.com/tonytechlabvn/nginx-loadbalancer-web-ui/raw/main/helm/template-nlb-0.1.0.tgz"
                 
-				echo "INFO: Push Package..."
-				sh "helm push template-nlb-0.1.0.tgz oci://${APP_IMAGE_NAME}"
+                echo "INFO: Push Package..."
+                // FIX 3: Sửa lỗi thiếu ngoặc kép và logic OCI
+                // Lưu ý: Helm OCI thường đẩy vào Project level, ví dụ: oci://harbor.tonytechlab.com/template-nlb
+                // Ở đây mình đẩy vào path image của bạn, Helm sẽ tạo artifact OCI tại đó.
+                sh "helm push template-nlb-0.1.0.tgz oci://${HARBOR_DOMAIN_NAME}/template-nlb"
 
                 echo "INFO: Logging out from Registry..."
                 sh "helm registry logout ${HARBOR_DOMAIN_NAME}"
