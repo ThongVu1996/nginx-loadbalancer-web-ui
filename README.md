@@ -6,7 +6,7 @@ An AI-powered web application to help you generate Nginx load balancer configura
 
 This guide outlines the process of setting up a continuous integration and continuous deployment (CI/CD) pipeline using Jenkins to automatically build, test, and deploy the application to a Kubernetes cluster.
 
-### Prerequisites
+### Prerequisites:
 
 *   A running Kubernetes cluster.
 *   `kubectl` configured to connect to your cluster.
