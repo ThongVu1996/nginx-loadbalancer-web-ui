@@ -7,7 +7,7 @@ deployment:
 
 image:
   # Image chúng ta đã push lên Harbor (thay vì GitLab registry)
-  repository: harbor.tonytechlab.com/tonytechlab/nginx-loadbalancer-tool
+  repository: arbor.tonytechlab.com/template-nlb/nginx-loadbalancer-tool
   tag: latest # Có thể thay đổi tag này khi deploy
   pullSecretsName: harbor-registry-login # Tên secret đã tạo ở K8s
 
