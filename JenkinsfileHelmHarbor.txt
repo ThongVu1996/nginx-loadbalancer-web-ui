@@ -1,0 +1,57 @@
+pipeline {
+    agent any
+    
+    environment {
+       // Image path on the registry
+        APP_IMAGE_NAME = "harbor.tonytechlab.com/template-nlb/nginx-loadbalancer-tool"
+
+        // Credentials IDs
+        REGISTRY_LOGIN_ID = 'harbor-registry-login'
+
+        // Updated namespace to be correct
+        K8S_NAMESPACE = 'nlb-tool'
+    }
+
+    stages {
+        stage('Stage 1: Checkout Latest Code') {
+            steps {
+                echo 'Starting to check out code...'
+                cleanWs()
+                checkout scm
+                echo "SUCCESS: Code checkout complete."
+            }
+        }
+
+        stage('Stage 2: Build & Push App') { 
+            steps {
+                echo "INFO: Logging into Registry..."
+                withCredentials([usernamePassword(credentialsId: REGISTRY_LOGIN_ID, usernameVariable: 'REG_USER', passwordVariable: 'REG_PASS')]) {
+                    sh "docker login harbor.tonytechlab.com -u ${REG_USER} -p ${REG_PASS}"
+                }
+                
+                echo "INFO: Building App image..."
+                // BUG FIX (added ".")
+                sh "docker build -f Dockerfile.txt -t ${APP_IMAGE_NAME}:latest ."
+                
+                echo "INFO: Pushing App image..."
+                sh "docker push ${APP_IMAGE_NAME}:latest"
+
+                echo "INFO: Logging out from Registry..."
+                sh "docker logout harbor.tonytechlab.com"
+            }
+        }
+
+    } // End of stages
+    
+    post {
+        always {
+            echo 'Pipeline has finished (Regardless of success or failure).'
+        }
+        success {
+            echo '✅ SUCCESS: Pipeline completed successfully!'
+        }
+        failure {
+            echo '❌ FAILED: Pipeline failed.'
+        }
+    } // End of post
+}
