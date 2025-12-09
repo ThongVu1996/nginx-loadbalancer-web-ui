@@ -3,10 +3,10 @@ pipeline {
     
     environment {
         // Harbor Registry Domain
-        HARBOR_DOMAIN_NAME = "harbor.tonytechlab.com"
+        HARBOR_DOMAIN_NAME = "harbor.thongdev.site"
         
         // Base Image Name (Tag will be appended dynamically during the build process)
-        APP_IMAGE_NAME = "harbor.tonytechlab.com/template-nlb/nginx-loadbalancer-tool"
+        APP_IMAGE_NAME = "harbor.thongdev.site/template-nlb/nginx-loadbalancer-tool"
         
         // Jenkins Credentials ID for Harbor Registry
         REGISTRY_LOGIN_ID = 'harbor-registry-login'
@@ -127,4 +127,5 @@ pipeline {
             echo '👉 Please check the Console Output above for debugging details.'
         }
     } 
+
 }
